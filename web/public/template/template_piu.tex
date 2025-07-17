@@ -1,0 +1,161 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{tikz}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+\definecolor{branding}{HTML}{1F1F7C}
+
+\titleformat{\section}
+  {\color{branding}\normalfont\Large\bfseries}
+  {}
+  {0em}
+  {}
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[L]{\textcolor{gray}{Paragon International University}}
+\fancyfoot[C]{}
+\fancyfoot[R]{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\begin{document}
+
+\noindent
+\begin{minipage}[t]{0.3\textwidth}
+    \fbox{\parbox[t][2in]{2in}{\centering\texttt{media/image1.png}}}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.7\textwidth}
+    \raggedleft
+    \textbf{[Course Code]}\\
+    \textbf{[Academic Year 20XX/20XX]}\\
+    \textbf{[Semester X]}\\
+    \textbf{[Credits: X]}
+\end{minipage}
+
+\vspace{0.2cm}
+
+\noindent\rule{\textwidth}{0.4pt}\\[-2.2ex]
+\rule{\textwidth}{0.4pt}
+
+\newcommand{\headerrow}[1]{\multicolumn{2}{@{}l}{\textbf{#1}}\\}
+
+\begin{table}[htbp]
+\begin{tabularx}{\textwidth}{@{}p{0.2\textwidth}X@{}}
+\multicolumn{2}{@{}l}{\textcolor{branding}{\textbf{Instructor Information}}} \\
+\midrule
+Name & [Include your title and what you prefer to be called] \\
+\midrule
+Contact Info & [Include information for your preferred method of contact here and office \#] \\
+\midrule
+Office hours & [Write \textcolor{red}{by appointment} if you don't have scheduled office hours] \\
+\vspace{1pt}\\
+\multicolumn{2}{@{}l}{\textcolor{branding}{\textbf{T.A. Information [Remove if there is no TA]}}} \\
+\midrule
+TA Name & [NAME] \\
+\midrule
+TA Contact Info & [Include information for TA's preferred method of contact here and office if available] \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section*{Course Description}
+From course information (if it is provided by Head of Department or Program Coordinator)
+
+\section*{Course Objectives}
+Objectives describe the goals and intentions of the professor who teaches the course. They are often termed the input in the course and may describe what the staff and faculty will do. 3 to 8 objectives can be listed here. (insert \textcolor{red}{from course information if provided} + can be added by instructor)
+
+\section*{Learning Outcomes}
+What, specifically, will students be able to do or demonstrate once they've completed the course? Identify 3-8 course-level learning outcomes for the course syllabus. (insert \textcolor{red}{from course information if provided} + can be added by instructor).
+
+\section*{Learning Resources}
+What materials are required for your course, including those indicated in Course Information (e.g., textbooks, software, lab equipment, etc.)?
+
+\section*{Assessment}
+Assessment measures Learning Outcomes. Assessment ensures that knowledge and skills that students acquire in the course match the Learning Outcomes. Thus, all the assessment tools that you use (projects, exams, quizzes, homework, class discussions, etc.) should evaluate whether and to what extent students are able to demonstrate attainment of the knowledge and skills in play.
+\\
+Below is a sample of the usual assessments implemented in a course. The instructor may change it accordingly to their needs; however, attendance is a compulsory part of grading and comprises 10\% of the course grade (please see Paragon.U's attendance policy on page 15-17 of the Student Handbook). Exceptions to this rule can be requested from the relevant Head of Department.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{@{}p{0.4\textwidth}|p{0.3\textwidth}@{}}
+\textbf{Assessment} & \textbf{Percentage of Final Grade} \\
+\midrule
+Attendance & 10\% \\
+\midrule
+Assignments & [Fill] \\
+\midrule
+Midterm Exam & [Fill] \\
+\midrule
+Portfolio & [Fill] \\
+\midrule
+Final Exam & [Fill] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Indicate here all the relevant information related to assessment, so students have a clear idea of how they will be graded. For Project/Portfolio/Essay type assessments, provide grading rubric here or in a separate file.
+
+\section{Course Policies}
+
+\begin{itemize}
+\item \textbf{Attendance \& Participation} (if applicable): Is attendance and/or participation a graded component of your course? If so, how will you measure student performance?
+
+\item \textbf{Academic Integrity \& Collaboration}: How is the policy motivated by the positive dimensions of academic integrity? What is and is not permitted with respect to collaboration and/or outside assistance for each type of graded work in your course? What is the stance towards plagiarism?
+
+\item \textbf{[Add any policy you will use in your course]}
+\end{itemize}
+
+\section{Course Schedule}
+
+If Course Information is provided by Head of Department or Program Coordinator, please make sure to cover the topics indicated in it)
+
+\begin{longtable}{|p{0.1\textwidth}|p{0.2\textwidth}|p{0.35\textwidth}|p{0.35\textwidth}|}
+\hline
+\textbf{Weeks} & \textbf{Theme/Topic} & \textbf{Contents} & \textbf{Assignments/Reading} \\
+\hline
+\endfirsthead
+
+\multicolumn{4}{c}%
+{\tablename\ \thetable\ -- \textit{Continued from previous page}} \\
+\hline
+\textbf{Weeks} & \textbf{Theme/Topic} & \textbf{Contents} & \textbf{Assignments/Reading} \\
+\hline
+\endhead
+
+\hline \multicolumn{4}{r}{\textit{Continued on next page}} \\
+\endfoot
+
+\hline
+\endlastfoot
+
+% Table content goes here
+1 & [Fill] & [Fill] & [Fill] \\
+\hline
+2 & [Fill] & [Fill] & [Fill] \\
+\hline
+3 & [Fill] & [Fill] & [Fill] \\
+\hline
+4 & [Fill] & [Fill] & [Fill] \\
+\hline
+5 & [Fill] & [Fill] & [Fill] \\
+\hline
+
+\end{longtable}
+
+\section*{Notes}
+
+(optional)
+
+
+\end{document}

@@ -1,0 +1,135 @@
+@page {
+    margin: 100px 25px 80px 25px;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    padding: 10px 25px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    padding: 10px 25px;
+    text-align: left;
+    font-size: 0.9em;
+    color: #666;
+    border-top: 0.4pt solid #666;
+}
+
+.content {
+    margin-top: 120px;
+    margin-bottom: 70px;
+    padding: 0 25px;
+}
+
+.logo-container {
+    float: left;
+    width: 30%;
+}
+
+.logo {
+    max-width: 100%;
+    height: auto;
+}
+
+.course-info {
+    float: right;
+    width: 70%;
+    text-align: right;
+    color: #1F1F7C;
+}
+
+.course-info p {
+    margin: 0;
+    line-height: 1.4;
+    font-weight: bold;
+}
+
+.header-divider {
+    clear: both;
+    border-top: 2px solid #1F1F7C;
+    margin-top: 10px;
+}
+
+.section-title {
+    color: #1F1F7C;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #1F1F7C;
+    padding-bottom: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th,
+td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f0f0f0;
+    color: #1F1F7C;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+.footer {
+    text-align: left;
+    font-size: 0.9em;
+    color: #666;
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.header-divider {
+    border-top: 2px solid #1F1F7C;
+    margin-bottom: 20px;
+}
+
+.header-first-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    padding: 10px 25px;
+}
+
+@media print {
+    .header-first-page { display: block !important; }
+    .footer { position: fixed; bottom: 0; width: 100%; }
+}
+.header-first-page { display: block; }
+@page { margin: 100px 25px 80px 25px; }
+@page :first { margin-top: 0; }
