@@ -196,9 +196,21 @@ class SyllabusRenderer
             }
             $html .= '</div>';
             $html .= '<div class="course-info">';
-            foreach ($header['courseInfo'] as $key => $value) {
-                $html .= "<p><strong>$value</strong></p>";
+            // new order of generate head
+            $order = ['courseCode', 'academicYear', 'semester','credits'];
+            foreach ($order as $key) {
+                if (isset($header['courseInfo'][$key])) {
+                    $value = $header['courseInfo'][$key];
+                    // Add prefix only for academicYear
+                    if ($key === 'academicYear') {
+                        $value = "Academic Year $value";
+                    }
+                    $html .= "<p><strong>$value</strong></p>";
+                }
             }
+            // foreach ($header['courseInfo'] as $key => $value) {
+            //     $html .= "<p><strong>$value</strong></p>";
+            // }
             $html .= '</div>';
             $html .= '<div class="header-divider"></div>';
             $html .= '</div>';
@@ -261,15 +273,13 @@ class SyllabusRenderer
             switch ($sectionKey) {
                 
                 case 'learningOutcomes':
-                    // if (isset($data['list'])) {
-                    //     $html .= $this->renderList($data['list']);
-                    // }
-                    // break;
                     if (isset($data['table'])) {
                         // $html .= $this->renderTable($data['table']);
                         $html .= $this->renderLearningOutcomesTable($data['table']);
                     } elseif (isset($data['list'])) {
+                        
                         $html .= $this->renderList($data['list']);
+                        
                     }
                     break;
                 case 'courseObjectives':
@@ -277,10 +287,6 @@ class SyllabusRenderer
                 case 'taInfo':
                 case 'assessment':
                 case 'courseSchedule':
-                    // if (isset($data['table'])) {
-                    //     $html .= $this->renderTable($data['table']);
-                    // }
-                    // break;
                     if (isset($data['weeks'])) {
                         $html .= $this->renderCourseScheduleNested($data['weeks']);
                     } elseif (isset($data['table'])) {
@@ -292,7 +298,9 @@ class SyllabusRenderer
                         // $html .= $this->renderTable($data['table']);
                         $html .= $this->renderCoursePoliciesTable($data['table']);
                     } elseif (isset($data['list'])) {
-                        $html .= $this->renderList($data['list']);
+                        
+                        $html .= $this->renderList($data['list']); 
+                        
                     }
                     break;
                 case 'courseDistribution':
@@ -314,16 +322,47 @@ class SyllabusRenderer
         }
     }
 
+    // private function renderList($list): string
+    // {
+    //     try {
+    //         if (is_string($list)) {
+    //             $items = explode("]], [[", trim($list, "[]"));
+    //             $html = "<ul>\n";
+    //             foreach ($items as $item) {
+    //                 $html .= "<li>" . trim($item, "[]") . "</li>\n";
+    //             }
+    //             $html .= "</ul>\n";
+    //             return $html;
+    //         }
+
+    //         if (!is_array($list)) {
+    //             $this->logDebug("Invalid list type: " . gettype($list));
+    //             return "";
+    //         }
+
+    //         $html = "<ul>\n";
+    //         foreach ($list as $item) {
+    //             $html .= "<li>" . (is_array($item) ? $item['content'] : $item) . "</li>\n";
+    //         }
+    //         $html .= "</ul>\n";
+    //         return $html;
+    //     } catch (Exception $e) {
+    //         $this->logDebug("Error in renderList method: " . $e->getMessage());
+    //         throw $e;
+    //     }
+    // }
+    // render list v2
     private function renderList($list): string
     {
         try {
             if (is_string($list)) {
                 $items = explode("]], [[", trim($list, "[]"));
-                $html = "<ul>\n";
+                $html = "<div style='width:100%; padding-left: 20px; box-sizing: border-box;'>\n";
+                $html .= "<ul style='width:100%; list-style-position: inside;'>\n";
                 foreach ($items as $item) {
                     $html .= "<li>" . trim($item, "[]") . "</li>\n";
                 }
-                $html .= "</ul>\n";
+                $html .= "</ul>\n</div>\n";
                 return $html;
             }
 
@@ -332,17 +371,19 @@ class SyllabusRenderer
                 return "";
             }
 
-            $html = "<ul>\n";
+            $html = "<div style='width:100%; padding-left: 20px; box-sizing: border-box;'>\n";
+            $html .= "<ul style='width:100%; list-style-position: inside;'>\n";
             foreach ($list as $item) {
                 $html .= "<li>" . (is_array($item) ? $item['content'] : $item) . "</li>\n";
             }
-            $html .= "</ul>\n";
+            $html .= "</ul>\n</div>\n";
             return $html;
         } catch (Exception $e) {
             $this->logDebug("Error in renderList method: " . $e->getMessage());
             throw $e;
         }
     }
+
 
     private function renderTable($table): string
     {
@@ -528,122 +569,21 @@ class SyllabusRenderer
         }
     }
     
-    // private function renderCourseScheduleNested(array $courseSchedule): string
-    // {
-    //     if (empty($courseSchedule)) return '';
-
-    //     $html = '<table width="100%" cellpadding="6" cellspacing="0" border="1" style="border-collapse: collapse; font-size: 14px; text-align: center;" >';
-    //     $html .= '
-    //         <thead>
-    //             <tr style="background: #f2f2f2;">
-    //                 <th style="width: 8%;">Sessions</th>
-    //                 <th style="width: 15%;">Module</th>
-    //                 <th style="width: 27%;">Learning Outcomes</th>
-    //                 <th style="width: 30%;">Delivery Method</th>
-    //                 <th style="width: 10%; font-size: 14px;">Assignments / Reading</th>
-    //                 <th style="width: 10%; font-size: 14px;">Assessment</th>
-    //             </tr>
-    //         </thead>
-    //         <tbody>';
-
-    //     foreach ($courseSchedule as $wIdx => $wData) {
-    //         $weekLabel = 'Session ' . ($wIdx + 1);
-    //         $module = '<strong>' . htmlspecialchars($wData['module'] ?? '') . '</strong>';
-
-    //         // Learning outcomes
-    //         $outcomeHtml = '';
-    //         if (!empty(trim($wData['learningOutcomes'] ?? ''))) {
-    //             $lines = explode("\n", trim($wData['learningOutcomes']));
-    //             $outcomeHtml .= '<div style="text-align: left;">';
-    //             foreach ($lines as $line) {
-    //                 $outcomeHtml .= htmlspecialchars(trim($line)) . '<br>';
-    //             }
-    //             $outcomeHtml .= '</div>';
-    //         }
-
-    //                     // Delivery method rows
-    //         $deliveryRows = '';
-    //         foreach ($wData['deliveryMethods'] as $delivery) {
-    //             $methods = $delivery['methods'] ?? [];
-    //             $rowspan = count($methods);
-    //             $firstRow = true;
-    //             $i = 0;
-
-    //             foreach ($methods as $m) {
-    //                 $borderRowStyle = ($i === 1) ? 'style="border-top: 1px solid #ccc;"' : '';
-                
-    //                 $deliveryRows .= "<tr $borderRowStyle>";
-                
-    //                 if ($firstRow) {
-    //                     $deliveryRows .= '<td rowspan="' . $rowspan . '" style="
-    //                         font-style: italic;
-    //                         vertical-align: middle;
-    //                         border: none;
-    //                         width: 60px;
-    //                         max-width: 60px;
-    //                     ">' . htmlspecialchars($delivery['day']) . '</td>';
-    //                     $firstRow = false;
-    //                 }
-                
-    //                 $deliveryRows .= '<td style="width: 190px; max-width: 190px; border: none;">' . htmlspecialchars($m['method']) . '</td>';
-    //                 $deliveryRows .= '<td style="width: 30px; max-width: 30px; border: none;">' . htmlspecialchars($m['duration']) . '</td>';
-    //                 $deliveryRows .= '</tr>';
-                
-    //                 $i++;
-    //             }
-                
-                
-    //         }
-
-    //         // Delivery table
-    //         $deliveryHtml = '
-    //         <table width="100%" style="
-    //             border-collapse: collapse;
-    //             font-size: 12px;
-    //             text-align: center;
-    //             border: none;
-    //             margin: 0;
-    //             table-layout: fixed;
-                
-    //         ">
-    //             <tbody>' . $deliveryRows . '</tbody>
-    //         </table>';
-
-
-
-    //         // Assignment & Assessment
-    //         $assign = trim($wData['assignments'] ?? '') ?: '-';
-    //         $assess = trim($wData['assessment'] ?? '') ?: '-';
-
-    //         $html .= '<tr>';
-    //         $html .= '<td>' . $weekLabel . '</td>';
-    //         $html .= '<td>' . $module . '</td>';
-    //         $html .= '<td>' . $outcomeHtml . '</td>';
-    //         $html .= '<td style="padding: 0; border: none;">' . $deliveryHtml . '</td>';
-    //         $html .= '<td style="font-size: 12px;">' . htmlspecialchars($assign) . '</td>';
-    //         $html .= '<td style="font-size: 12px;">' . htmlspecialchars($assess) . '</td>';
-    //         $html .= '</tr>';
-    //     }
-
-    //     $html .= '</tbody></table>';
-    //     return $html;
-    // }
-
     // New renderer for courseSchedule v2
     private function renderCourseScheduleNested(array $courseSchedule): string
     {
         if (empty($courseSchedule)) return '';
     
-        $html = '<table width="100%" cellpadding="6" cellspacing="0" border="1" style="border-collapse: collapse; font-size: 14px; text-align: center;" >';
+        $html = '<table width="100%" cellpadding="0" cellspacing="0" border="1" style="border-collapse: collapse; font-size: 14px; text-align: center;" >';
         $html .= '
             <thead>
                 <tr style="background: #f2f2f2;">
                     <th style="width: 8%;">Sessions</th>
-                    <th style="width: 15%;">Module</th>
-                    <th style="width: 27%;">Learning Outcomes</th>
-                    <th style="width: 30%;">Delivery Method</th>
+                    <th style="width: 12%;">Module</th>
+                    <th style="width: 30%;">Learning Outcomes</th>
+                    <th style="width: 25%;">Delivery Method</th>
                     <th style="width: 10%; font-size: 14px;">Assignments / Reading</th>
-                    <th style="width: 10%; font-size: 14px;">Assessment</th>
+                    <th style="width: 15%; font-size: 14px;">Assessment</th>
                 </tr>
             </thead>
             <tbody>';
@@ -652,7 +592,8 @@ class SyllabusRenderer
             $weekLabel = 'Session ' . ($wIdx + 1);
             $module = '<strong>' . htmlspecialchars($wData['module'] ?? '') . '</strong>';
     
-            // Learning outcomes (updated to support array format)
+
+            $paddingTopBottom = '1px';
             // Learning outcomes (updated with header + numbering)
             $outcomeHtml = '';
             if (!empty($wData['learningOutcomes']) && is_array($wData['learningOutcomes'])) {
@@ -675,9 +616,9 @@ class SyllabusRenderer
                     $desc = htmlspecialchars($lo['outcome'] ?? '');
 
                     $outcomeHtml .= '<tr style="border: none;">';
-                    $outcomeHtml .= '<td style="width: 5%; border: none; vertical-align: top; padding: 2px 4px;">' . $num . '.</td>';
-                    $outcomeHtml .= '<td style="width: 70%; border: none; padding: 2px 4px;">' . $desc . '</td>';
-                    $outcomeHtml .= '<td style="width: 25%; border: none; padding: 2px 4px; font-style: italic; color: #555;">' . $out . '</td>';
+                    $outcomeHtml .= '<td style="width: 5%; border: none; vertical-align: top; padding: ' . $paddingTopBottom . '; ">' . $num . '.</td>';
+                    $outcomeHtml .= '<td style="width: 75%; border: none; padding: ' . $paddingTopBottom . '; ">' . $desc . '</td>';
+                    $outcomeHtml .= '<td style="width: 20%; border: none; padding: ' . $paddingTopBottom . '; font-style: italic; color: #555;">' . $out . '</td>';
                     $outcomeHtml .= '</tr>';
                 }
 
@@ -695,43 +636,16 @@ class SyllabusRenderer
                 }
             }
     
-            // Delivery method rows (same as before)
-            // $deliveryRows = '';
-            // foreach ($wData['deliveryMethods'] as $delivery) {
-            //     $methods = $delivery['methods'] ?? [];
-            //     $rowspan = count($methods);
-            //     $firstRow = true;
-            //     $i = 0;
-    
-            //     foreach ($methods as $m) {
-            //         $borderRowStyle = ($i === 1) ? 'style="border-top: 1px solid #ccc;"' : '';
-            //         $deliveryRows .= "<tr $borderRowStyle>";
-    
-            //         if ($firstRow) {
-            //             $deliveryRows .= '<td rowspan="' . $rowspan . '" style="
-            //                 font-style: italic;
-            //                 vertical-align: middle;
-            //                 border: none;
-            //                 width: 60px;
-            //                 max-width: 60px;
-            //             ">' . htmlspecialchars($delivery['day']) . '</td>';
-            //             $firstRow = false;
-            //         }
-    
-            //         $deliveryRows .= '<td style="width: 190px; max-width: 190px; border: none;">' . htmlspecialchars($m['method']) . '</td>';
-            //         $deliveryRows .= '<td style="width: 30px; max-width: 30px; border: none;">' . htmlspecialchars($m['duration']) . '</td>';
-            //         $deliveryRows .= '</tr>';
-    
-            //         $i++;
-            //     }
-            // }
-            // Delivery method rows v2
-            // Delivery method rows (styled like Learning Outcomes)
             $deliveryRows = '';
             foreach ($wData['deliveryMethods'] as $delivery) {
                 $methods = $delivery['methods'] ?? [];
                 $rowspan = count($methods);
                 $firstRow = true;
+
+                // Choose line-height dynamically
+                $lineHeight = ($rowspan >= 3) ? 1 : 1;
+                $paddingTopBottom = ($rowspan >= 3) ? '23px' : '30px';
+
 
                 foreach ($methods as $m) {
                     $deliveryRows .= '<tr>';
@@ -739,36 +653,56 @@ class SyllabusRenderer
                     // First column: Day (with rowspan, styled to match outer table)
                     if ($firstRow) {
                         $deliveryRows .= '<td rowspan="' . $rowspan . '" style="
-                            padding: 6px;
+                        
+                            line-height: ' . $lineHeight . ';
+                            
+                            padding-top: ' . $paddingTopBottom . ';
+                            padding-bottom: ' . $paddingTopBottom . ';
+
+                            width: 20%;
                             vertical-align: middle;
                             text-align: center;
                             font-weight: normal;
-                            border-right: 1px solid #ddd;
-                            border-bottom: 1px solid #ddd;
-                            background-color: #fff;
+                            border-right: none; /* remove right border */
+                            border-bottom: none; /* remove bottom border */
+                            background-color: transparent; /* match outer bg */
                         ">' . htmlspecialchars($delivery['day']) . '</td>';
                         $firstRow = false;
                     }
 
     
                     $deliveryRows .= '<td style="
-                    padding: 4px 6px;
-                    margin: 0;
-                    text-align: middle;
-                    vertical-align: top;
-                    word-break: break-word;
-                    border-bottom: 1px solid #ddd;
-                    background-color: #fff;
+
+                        line-height: ' . $lineHeight . ';
+
+                        padding-top: ' . $paddingTopBottom . ';
+                        padding-bottom: ' . $paddingTopBottom . ';
+
+                        width: 60%;
+                        margin: 0;
+                        text-align: left;
+                        vertical-align: middle;
+                        word-break: break-word;
+                        border-bottom: none; /* no bottom border */
+                        background-color: transparent;
                     ">' . nl2br(htmlspecialchars($m['method'])) . '</td>';
     
 
                     // Duration column (right-aligned, match styling)
                     $deliveryRows .= '<td style="
-                        padding: 6px;
-                        text-align: middle;
-                        vertical-align: top;
-                        border-bottom: 1px solid #ddd;
-                        background-color: #fff;
+
+                        line-height: ' . $lineHeight . ';
+
+                        padding-top: ' . $paddingTopBottom . ';
+                        padding-bottom: ' . $paddingTopBottom . ';
+
+                        width: 20%;
+                        margin: 0;
+                        text-align: center;
+                        vertical-align: middle;
+                        
+                        border-bottom: none; /* no bottom border */
+                        background-color: transparent;
                     ">' . htmlspecialchars($m['duration']) . '</td>';
                    
 
@@ -778,34 +712,19 @@ class SyllabusRenderer
 
             $deliveryHtml = '
             <table width="100%" style="
-                border-collapse: collapse;
+                border-collapse: separate; /* separate borders for blending */
+                border-spacing: 0; /* no spacing between cells */
                 font-size: 12px;
-                line-height: 5;
+            
                 table-layout: fixed;
                 margin: 0;
                 padding: 0;
+                background-color: transparent;
+                border: none; /* no border around nested table */
             ">
+               
                 <tbody>' . $deliveryRows . '</tbody>
             </table>';
-
-
-
-
-    
-            // Delivery method table
-            // $deliveryHtml = '
-            // <table width="100%" style="
-            //     border-collapse: collapse;
-            //     font-size: 12px;
-            //     text-align: center;
-            //     border: none;
-            //     margin: 0;
-            //     table-layout: fixed;
-            // ">
-            //     <tbody>' . $deliveryRows . '</tbody>
-            // </table>';
-            
-
     
             // Assignment & Assessment
             $assign = trim($wData['assignments'] ?? '') ?: '-';
@@ -825,9 +744,6 @@ class SyllabusRenderer
         return $html;
     }
     
-    // In Edit.js, replace renderStructuredCourseSchedule with this version:
-
-
   
     /* ------------------------------------------------------------------ */
     /*  Custom renderer for Course Distribution                           */
@@ -841,8 +757,8 @@ class SyllabusRenderer
         $html  = '<table width="100%" style="border-collapse:collapse; font-size:14px;">';
         $html .= '<thead><tr style="background:#f2f2f2;">';
         foreach ($table['headers'] as $i => $head) {
-            // fixed widths: 25 % | 35 % | 20 % | 20 %
-            $width = [25, 35, 20, 20][$i] . '%';
+            // fixed widths: 15, 75, 10, 10 %
+            $width = [15, 75, 10, 10][$i] . '%';
             $html .= '<th style="width:'.$width.'; border:1px solid #ccc; text-align:center;">'
                 . htmlspecialchars($head) . '</th>';
         }
@@ -862,9 +778,5 @@ class SyllabusRenderer
         $html .= '</tbody></table>';
         return $html;
     }
-
-    
-
-    
 
 }

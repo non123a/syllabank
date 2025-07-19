@@ -575,24 +575,7 @@ export default function SyllabusEdit() {
       return copy;
     });
   };
-  //   // 🔖 HELPER: duplicates a week and renumbers it
-  // const copyLastWeek = (setContent) => {
-  //   setContent(prev => {
-  //     const draft = structuredClone(prev);
-  //     const weeks = draft.body.content.courseSchedule.weeks;
-  //     if (!weeks.length) return prev;   // nothing to copy
 
-  //     const newWeek = structuredClone(weeks[weeks.length - 1]);
-  //     newWeek.week = weeks.length + 1;  // bump label
-  //     weeks.push(newWeek);
-  //     return draft;
-  //   });
-  // };
-
-  // add this to render a nested course schedule that custom made
-  // ------------------------------------------------------------------
-  // Structured Course Schedule (Weeks ▸ Days ▸ Methods)
-  // ------------------------------------------------------------------
 
   const renderStructuredCourseSchedule = (sectionKey) => {
     const section = content?.body?.content?.[sectionKey]
@@ -605,20 +588,47 @@ export default function SyllabusEdit() {
         cb(copy)
         return copy
       })
-
-    const addWeek = () =>
-      patch((c) =>
-        c.body.content[sectionKey].weeks.push({
+    //  v1   
+    // const addWeek = () =>
+    //   patch((c) =>
+    //     c.body.content[sectionKey].weeks.push({
+    //       week: c.body.content[sectionKey].weeks.length + 1,
+    //       module: '',
+    //       learningOutcomes: [],
+    //       deliveryMethods: [],
+    //       assignments: '',
+    //       assessment: ''
+    //     })
+    //   )
+      const addWeek = () =>
+      patch((c) => {
+        const newWeek = {
           week: c.body.content[sectionKey].weeks.length + 1,
           module: '',
-          learningOutcomes: '',
-          
-          deliveryMethods: [],
+          learningOutcomes: [
+            {
+              ol: '',
+              clo: ''
+            }
+          ],
+          deliveryMethods: [
+            {
+              day: '',
+              methods: [
+                {
+                  method: '',
+                  duration: ''
+                }
+              ]
+            }
+          ],
           assignments: '',
           assessment: ''
-        })
-      )
-
+        }
+    
+        c.body.content[sectionKey].weeks.push(newWeek)
+      })
+    
     const addDay = (w) =>
       patch((c) =>
         c.body.content[sectionKey].weeks[w].deliveryMethods.push({
@@ -645,14 +655,7 @@ export default function SyllabusEdit() {
             field
           ] = val)
       )
-    // Made change for learning out come part to have 2 col -v1
-    // const addLearningOutcome = (w) =>
-    //   patch((c) =>
-    //     c.body.content[sectionKey].weeks[w].learningOutcomes.push({
-    //       outcome: '',
-    //       clo: ''
-    //     })
-    //   )
+    
     // Made change for learning out come part to have 2 col -v2
     const addLearningOutcome = (w) =>
       patch((c) => {
@@ -834,23 +837,6 @@ export default function SyllabusEdit() {
                   </Box>
                 ))}
 
-                {/* <Button
-                  size="small"
-                  onClick={() => addDay(w)}
-                  sx={{ mt: 1 }}
-                  variant="outlined"
-                >
-                  + Add Day
-                </Button> */}
-                {/* this button add to allow user to copy the previous week to paste in the next week */}
-                {/* <Button
-                  size="small"
-                  color="secondary"
-                  onClick={() => copyWeek(w, setContent)}
-                  sx={{ mt: 1 }}
-                >
-                  ⧉ Copy
-                </Button> */}
 
               </Grid>
 
@@ -890,15 +876,7 @@ export default function SyllabusEdit() {
           + Add Session
           
         </Button>
-        {/* add copy buttom */}
-        {/* <Button
-          variant="outlined"          // secondary style
-          sx={{ ml: 1 }}              // small left-margin
-          onClick={copyLastWeek}      // handler you already wrote
-          title="Duplicate the last week with all its details"
-        >
-          ⧉ Copy
-        </Button> */}
+      
       </Box>
     )
   }
@@ -1007,7 +985,7 @@ export default function SyllabusEdit() {
                       {section.title}
                     </Typography>
                     {renderSectionContent(section, key)}
-                    {/* {key !== 'courseSchedule' && ( */}
+                    {key !== 'courseSchedule' && (
                     <Box sx={{ mt: 1 }}>
                       <IconButton onClick={() => editSection(key)}>
                         <EditIcon />
@@ -1016,7 +994,7 @@ export default function SyllabusEdit() {
                         <DeleteIcon />
                       </IconButton>
                     </Box>
-                    {/* )} */}
+                    )}
                   </Box>
                 ))}
               <Button
