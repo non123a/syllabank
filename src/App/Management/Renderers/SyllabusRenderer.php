@@ -498,8 +498,8 @@ class SyllabusRenderer
                 $number = $index + 1;
             
                 $html .= "<tr>\n";
-                $html .= "<td style=\"width: 15%; font-weight: bold; vertical-align: top; border: none;\">{$plo}</td>\n";
-                $html .= "<td style=\"width: 85%; padding-left: 10px; border: none;\">";
+                $html .= "<td style=\"width: 15%; font-weight: bold; vertical-align: top; padding-top:0px;padding-bottom:0px;border: none;\">{$plo}</td>\n";
+                $html .= "<td style=\"width: 85%; padding-left: 10px;padding-top:0px;padding-bottom:0px;border: none;\">";
                 $html .= ($index + 1) . ". ";
 
                 if (is_array($desc)) {
@@ -748,35 +748,95 @@ class SyllabusRenderer
     /* ------------------------------------------------------------------ */
     /*  Custom renderer for Course Distribution                           */
     /* ------------------------------------------------------------------ */
+    // private function renderCourseDistribution($table): string
+    // {
+    //     if (empty($table['rows'])) {
+    //         return '';
+    //     }
+
+    //     $html  = '<table width="100%" style="border-collapse:collapse; font-size:14px;">';
+    //     $html .= '<thead><tr style="background:#f2f2f2;">';
+    //     foreach ($table['headers'] as $i => $head) {
+    //         // fixed widths: 15, 75, 10, 10 %
+    //         $width = [15, 75, 10, 10][$i] . '%';
+    //         $html .= '<th style="width:'.$width.'; border:1px solid #ccc; text-align:center;">'
+    //             . htmlspecialchars($head) . '</th>';
+    //     }
+    //     $html .= '</tr></thead><tbody>';
+
+    //     foreach ($table['rows'] as $row) {
+    //         $html .= '<tr>';
+    //         foreach ($row as $idx => $cell) {
+    //             $align  = $idx === 1 ? 'left' : 'center';             // Delivery Method → left align
+    //             $cell   = nl2br(htmlspecialchars($cell));             // keep textarea line-breaks
+    //             $html  .= '<td style="border:1px solid #ccc; text-align:'.$align.';">'
+    //                     . $cell . '</td>';
+    //         }
+    //         $html .= '</tr>';
+    //     }
+
+    //     $html .= '</tbody></table>';
+    //     return $html;
+    // }
     private function renderCourseDistribution($table): string
-    {
-        if (empty($table['rows'])) {
-            return '';
-        }
-
-        $html  = '<table width="100%" style="border-collapse:collapse; font-size:14px;">';
-        $html .= '<thead><tr style="background:#f2f2f2;">';
-        foreach ($table['headers'] as $i => $head) {
-            // fixed widths: 15, 75, 10, 10 %
-            $width = [15, 75, 10, 10][$i] . '%';
-            $html .= '<th style="width:'.$width.'; border:1px solid #ccc; text-align:center;">'
-                . htmlspecialchars($head) . '</th>';
-        }
-        $html .= '</tr></thead><tbody>';
-
-        foreach ($table['rows'] as $row) {
-            $html .= '<tr>';
-            foreach ($row as $idx => $cell) {
-                $align  = $idx === 1 ? 'left' : 'center';             // Delivery Method → left align
-                $cell   = nl2br(htmlspecialchars($cell));             // keep textarea line-breaks
-                $html  .= '<td style="border:1px solid #ccc; text-align:'.$align.';">'
-                        . $cell . '</td>';
-            }
-            $html .= '</tr>';
-        }
-
-        $html .= '</tbody></table>';
-        return $html;
+{
+    if (empty($table['rows'])) {
+        return '';
     }
+
+    $html  = '<table width="100%" style="border-collapse:collapse; font-size:14px;">';
+    $html .= '<thead><tr style="background:#f2f2f2;">';
+    foreach ($table['headers'] as $i => $head) {
+        // fixed widths: 15, 75, 10, 10 %
+        $width = [15, 75, 10, 10][$i] . '%';
+        $html .= '<th style="width:'.$width.'; border:1px solid #ccc; text-align:center;">'
+            . htmlspecialchars($head) . '</th>';
+    }
+    $html .= '</tr></thead><tbody>';
+
+    $totalHours = 0;
+    $totalCredits = 0;
+
+    foreach ($table['rows'] as $row) {
+        $html .= '<tr>';
+        foreach ($row as $idx => $cell) {
+            $align  = $idx === 1 ? 'left' : 'center';             // Delivery Method → left align
+            $cellText = nl2br(htmlspecialchars($cell));            // keep textarea line-breaks
+            $html  .= '<td style="border:1px solid #ccc; text-align:'.$align.';">'
+                    . $cellText . '</td>';
+
+            // Sum hours and credits assuming Hours is 3rd column (index 2), Credits 4th (index 3)
+            if ($idx === 2) { // Hours column
+                // Remove 'h' or any trailing chars and convert to float
+                $val = floatval(preg_replace('/[^\d\.]/', '', $cell));
+                $totalHours += $val;
+            }
+            if ($idx === 3) { // Credits column
+                $val = floatval(preg_replace('/[^\d\.]/', '', $cell));
+                $totalCredits += $val;
+            }
+        }
+        $html .= '</tr>';
+    }
+
+    // Add total row
+    $html .= '<tr style="font-weight:bold; background:#f9f9f9;">';
+    foreach ($table['headers'] as $idx => $_) {
+        if ($idx === 0) {
+            $html .= '<td style="border:1px solid #ccc; text-align:center;">Total</td>';
+        } elseif ($idx === 2) {
+            $html .= '<td style="border:1px solid #ccc; text-align:center;">' . $totalHours . 'h</td>';
+        } elseif ($idx === 3) {
+            $html .= '<td style="border:1px solid #ccc; text-align:center;">' . $totalCredits . ' credits</td>';
+        } else {
+            $html .= '<td style="border:1px solid #ccc;"></td>';
+        }
+    }
+    $html .= '</tr>';
+
+    $html .= '</tbody></table>';
+    return $html;
+}
+
 
 }

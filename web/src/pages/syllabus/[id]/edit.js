@@ -53,6 +53,11 @@ export default function SyllabusEdit() {
   const [currentSection, setCurrentSection] = useState(null)
   const [currentSectionKey, setCurrentSectionKey] = useState(null)
   const { enqueueSnackbar } = useSnackbar()
+// for store total hour of courseDistribution
+  // const [courseDistributionTotalHours, setCourseDistributionTotalHours] = useState(0)
+  const [courseDistributionTotalHours, setCourseDistributionTotalHours] = useState(0)
+  const [courseScheduleTotalHours, setCourseScheduleTotalHours] = useState(0)
+  const [hoursMismatchWarning, setHoursMismatchWarning] = useState('')
 
   // useEffect(() => {
   //   if (id) {
@@ -68,13 +73,79 @@ export default function SyllabusEdit() {
     }
 
   }, [id, router.isReady])
+  useEffect(() => {
+    if (!content) return
+  
+    // Function to parse schedule total hours (like before)
+    const getScheduleTotal = () => {
+      const weeks = content.body?.content?.courseSchedule?.weeks || []
+      let total = 0
+  
+      weeks.forEach(week => {
+        week.deliveryMethods?.forEach(delivery => {
+          delivery.methods?.forEach(method => {
+            let dur = method.duration?.toLowerCase()?.trim() || ''
+            if (!dur) return
+  
+            let hours = 0
+            if (dur.endsWith('h')) {
+              hours = parseFloat(dur.replace('h', ''))
+            } else if (dur.endsWith('m')) {
+              const minutes = parseFloat(dur.replace('m', ''))
+              hours = minutes / 60
+            } else {
+              hours = parseFloat(dur)
+            }
+            if (!isNaN(hours)) total += hours
+          })
+        })
+      })
+  
+      return Math.round(total * 100) / 100
+    }
+  
+    // Function to parse course distribution total hours
+    const getDistributionTotal = () => {
+      const table = content.body?.content?.courseDistribution?.table
+      if (!table) return 0
+  
+      const headers = table.headers || []
+      const rows = table.rows || []
+  
+      const hoursColIndex = headers.findIndex(h => h.toLowerCase().includes('hour'))
+      if (hoursColIndex === -1) return 0
+  
+      let total = 0
+      rows.forEach(row => {
+        if (!row || !row[hoursColIndex]) return
+        const val = parseFloat(row[hoursColIndex])
+        if (!isNaN(val)) total += val
+      })
+  
+      return Math.round(total * 100) / 100
+    }
+  
+    const scheduleTotal = getScheduleTotal()
+    const distributionTotal = getDistributionTotal()
+  
+    setCourseScheduleTotalHours(scheduleTotal)
+    setCourseDistributionTotalHours(distributionTotal)
+  
+    if (scheduleTotal !== distributionTotal) {
+      setHoursMismatchWarning(
+        `⚠️ Warning: Schedule total hours (${scheduleTotal}h) do not match distribution total hours (${distributionTotal}h).`
+      )
+    } else {
+      setHoursMismatchWarning('')
+    }
+  }, [content])
+  
   const fetchSyllabus = async () => {
     try {
       const response = await axios.get(`/syllabus/${id}`)
       if (response.data) {
         const parsedContent = JSON.parse(response.data.content)
         console.log("🔎 FETCHED SYLLABUS:", parsedContent)
-        // console.log(content.body.content.courseSchedule)
 
         // const query = router.query
 
@@ -115,25 +186,50 @@ export default function SyllabusEdit() {
 
 
 
-        if (query.sections && (!courseInfo.credits || courseInfo.credits.includes('Credits X'))) {
+        // // --- STEP 1: Extract credit number ---
+        // let creditStr = courseInfo.credits || ''
+        // let creditMatch = creditStr.match(/Credits:\s*(\d+)/)
+        // let creditNumber = creditMatch ? parseInt(creditMatch[1], 10) : (parseInt(dbCredit, 10) || 0)
 
-          try {
+        // // Guard against zero or invalid
+        // if (creditNumber > 0) {
+        //   const expectedHours = creditNumber * 15
 
-            const parsedSections = JSON.parse(query.sections)
+        //   // --- STEP 2: Calculate courseSchedule total hours ---
+        //   const scheduleWeeks = parsedContent.body.content.courseSchedule?.weeks || []
+        //   let totalScheduleHours = 0
+        //   scheduleWeeks.forEach(week => {
+        //     if (Array.isArray(week.deliveryMethods)) {
+        //       week.deliveryMethods.forEach(methodGroup => {
+        //         if (Array.isArray(methodGroup.methods)) {
+        //           methodGroup.methods.forEach(method => {
+        //             totalScheduleHours += parseFloat(method.duration || 0)
+        //           })
+        //         }
+        //       })
+        //     }
+        //   })
 
-            if (Array.isArray(parsedSections)) {
+        //   // --- STEP 3: Calculate courseDistribution total hours ---
+        //   const courseDistTable = parsedContent.body.content.courseDistribution?.table?.rows || []
+        //   let totalDistributionHours = 0
+        //   courseDistTable.forEach(row => {
+        //     const hours = row?.[2] // assuming column index 2 is 'Hours'
+        //     totalDistributionHours += parseFloat(hours || 0)
+        //   })
 
-              courseInfo.credits = `Credits: ${parsedSections[0]}`
+        //   // --- STEP 4: Compare ---
+        //   if (totalScheduleHours !== expectedHours) {
+        //     console.warn(`⚠️ Total schedule hours (${totalScheduleHours}) don't match expected hours (${expectedHours})`)
+        //   }
 
-            }
+        //   if (totalDistributionHours !== expectedHours) {
+        //     console.warn(`⚠️ Total distribution hours (${totalDistributionHours}) don't match expected hours (${expectedHours})`)
+        //   }
+        // }
 
-          } catch (err) {
 
-            console.warn('Could not parse sections', err)
-
-          }
-
-        }
+      
 
     
 
@@ -175,19 +271,12 @@ export default function SyllabusEdit() {
 
 
 
-
-
-        // ✅ Finally update state
-
-        // setContent(parsedContent)
-
-
         // add course distribution
         if (!parsedContent.body.content.courseDistribution) {
           parsedContent.body.content.courseDistribution = {
             title: 'Course Distribution',
             description: '',
-            table: { headers: ['Domain','Delivery Method','Topic', 'Hours'], rows: [['', '','','']] }
+            table: { headers: ['Domain','Delivery Method','Hour', 'Credit'], rows: [['', '','','']] }
           };
         }
         // inside fetchSyllabus() AFTER you decode JSON
@@ -405,6 +494,65 @@ export default function SyllabusEdit() {
     []
   )
 
+  // store total hour of course schdule
+  // const getCourseScheduleTotalHours = () => {
+  //   const weeks = content?.body?.content?.courseSchedule?.weeks || []
+  //   let total = 0
+  
+  //   for (const week of weeks) {
+  //     const deliveryMethods = week.deliveryMethods || []
+  //     for (const method of deliveryMethods) {
+  //       const duration = parseFloat(method.duration)
+  //       if (!isNaN(duration)) {
+  //         total += duration
+  //       }
+  //     }
+  //   }
+  
+  //   return total
+  // }
+  // set total hour of course schedule total duration
+  const getCourseScheduleTotalHours = () => {
+    const weeks = content?.body?.content?.courseSchedule?.weeks || []
+    let total = 0
+  
+    for (const week of weeks) {
+      const deliveryMethods = week.deliveryMethods || []
+      for (const delivery of deliveryMethods) {
+        const methods = delivery.methods || []
+        for (const method of methods) {
+          // method.duration might be a string like "1h", "30m", "1.5h"
+          // So we parse and convert to hours:
+  
+          const durStr = method.duration?.toLowerCase()?.trim() || ''
+  
+          if (!durStr) continue
+  
+          let hours = 0
+  
+          if (durStr.endsWith('h')) {
+            // e.g. "1.5h" or "1h"
+            hours = parseFloat(durStr.replace('h', ''))
+          } else if (durStr.endsWith('m')) {
+            // e.g. "30m"
+            const minutes = parseFloat(durStr.replace('m', ''))
+            hours = minutes / 60
+          } else {
+            // fallback, try parse directly
+            hours = parseFloat(durStr)
+          }
+  
+          if (!isNaN(hours)) {
+            total += hours
+          }
+        }
+      }
+    }
+  
+    // Round to 2 decimal places for neatness
+    return Math.round(total * 100) / 100
+  }
+  
   const handleTableHeaderChange = useCallback((sectionKey, index, value) => {
     setContent((prevContent) => {
       const newContent = { ...prevContent }
@@ -419,15 +567,136 @@ export default function SyllabusEdit() {
       return newContent
     })
   }, [])
+//  renderTableSection v1
+  // const renderTableSection = (section, sectionKey) => {
+  //   return (
+  //     <div className="space-y-4">
+  //       <Table>
+  //       {sectionKey !== 'learningOutcomes' && (
+  //           <TableHead>
+  //             <TableRow>
+  //               {section.table.headers.map((header, index) => (
+  //                 <TableCell key={index}>
+  //                   <TextField
+  //                     value={header}
+  //                     onChange={(e) =>
+  //                       handleTableHeaderChange(sectionKey, index, e.target.value)
+  //                     }
+  //                     fullWidth
+                      
+  //                   />
+  //                 </TableCell>
+  //               ))}
+  //               <TableCell>
+  //                 <IconButton onClick={() => addColumn(sectionKey)}>
+  //                   <AddIcon />
+  //                 </IconButton>
+  //               </TableCell>
+  //             </TableRow>
+  //           </TableHead>
+  //         )}
+
+  //         <TableBody>
+  //           {section.table.rows.map((row, rowIndex) => (
+  //             <TableRow key={rowIndex}>
+  //               {row.map((cell, cellIndex) => (
+  //                 <TableCell key={cellIndex}>
+  //                   <TextField
+  //                     value={cell}
+  //                     onChange={(e) =>
+  //                       handleTableCellChange(
+  //                         sectionKey,
+  //                         rowIndex,
+  //                         cellIndex,
+  //                         e.target.value
+  //                       )
+  //                     }
+  //                     fullWidth
+  //                     multiline={(sectionKey === 'coursePolicies' && cellIndex === 1) ||
+  //                     (sectionKey === 'courseDistribution' && cellIndex === 1)}
+                  
+  //                     minRows={(sectionKey === 'coursePolicies' && cellIndex === 1) ? 2 :
+  //                     (sectionKey === 'courseDistribution' && cellIndex === 1) ? 3 : 1}
+                    
+  //                   />
+  //                 </TableCell>
+  //               ))}
+  //               <TableCell>
+  //                 <IconButton onClick={() => deleteRow(sectionKey, rowIndex)}>
+  //                   <DeleteIcon />
+  //                 </IconButton>
+  //               </TableCell>
+  //               {sectionKey == 'learningOutcomes' && (
+  //               <TableCell>
+  //                 <IconButton onClick={() => addColumn(sectionKey)}>
+  //                   <AddIcon />
+  //                 </IconButton>
+  //               </TableCell>
+  //               )}
+  //             </TableRow>
+  //           ))}
+  //         </TableBody>
+  //       </Table>
+
+  
+  //       <Box sx={{ mt: 2 }}>
+  //         <Button onClick={() => addRow(sectionKey)}>Add Row</Button>
+  //         <Button onClick={() => deleteColumn(sectionKey)} sx={{ ml: 2 }}>
+  //           Delete Last Column
+  //         </Button>
+  //       </Box>
+  //     </div>
+  //   )
+  // }
+  
+// //  change here check if the table is course schedule then generaet a unique table for it  v1
+//   const renderSectionContent = (section, sectionKey) => {
+//     if (sectionKey === 'courseSchedule') {
+//       return renderStructuredCourseSchedule(sectionKey)
+//     } else if (section.table) {
+//       return renderTableSection(section, sectionKey)
+//     } else {
+//       return (
+//         <ReactQuill
+//           value={section.description}
+//           onChange={(value) =>
+//             handleContentChange(`body.content.${sectionKey}.description`, value)
+//           }
+//         />
+//       )
+//     }
+    
+//   }
 
   const renderTableSection = (section, sectionKey) => {
+    const headers = section.table.headers
+    const rows = section.table.rows
+
+    // Get column indexes
+    const hourIndex = headers.findIndex(h => h.toLowerCase().includes('hour'))
+    const creditIndex = headers.findIndex(h => h.toLowerCase().includes('credit'))
+
+    const getColumnSum = (colIndex) => {
+      return rows.reduce((acc, row) => {
+        const val = parseFloat(row[colIndex])
+        return acc + (isNaN(val) ? 0 : val)
+      }, 0)
+    }
+
+    const totalRow = headers.map((_, idx) => {
+      if (idx === 0) return 'Total'
+      if (idx === hourIndex) return `${getColumnSum(hourIndex)}h`
+      if (idx === creditIndex) return `${getColumnSum(creditIndex)} credit`
+      return ''
+    })
+
     return (
       <div className="space-y-4">
         <Table>
-        {sectionKey !== 'learningOutcomes' && (
+          {sectionKey !== 'learningOutcomes' && (
             <TableHead>
               <TableRow>
-                {section.table.headers.map((header, index) => (
+                {headers.map((header, index) => (
                   <TableCell key={index}>
                     <TextField
                       value={header}
@@ -435,7 +704,6 @@ export default function SyllabusEdit() {
                         handleTableHeaderChange(sectionKey, index, e.target.value)
                       }
                       fullWidth
-                      
                     />
                   </TableCell>
                 ))}
@@ -449,7 +717,7 @@ export default function SyllabusEdit() {
           )}
 
           <TableBody>
-            {section.table.rows.map((row, rowIndex) => (
+            {rows.map((row, rowIndex) => (
               <TableRow key={rowIndex}>
                 {row.map((cell, cellIndex) => (
                   <TableCell key={cellIndex}>
@@ -465,11 +733,9 @@ export default function SyllabusEdit() {
                       }
                       fullWidth
                       multiline={(sectionKey === 'coursePolicies' && cellIndex === 1) ||
-                      (sectionKey === 'courseDistribution' && cellIndex === 1)}
-                  
+                        (sectionKey === 'courseDistribution' && cellIndex === 1)}
                       minRows={(sectionKey === 'coursePolicies' && cellIndex === 1) ? 2 :
-                      (sectionKey === 'courseDistribution' && cellIndex === 1) ? 3 : 1}
-                    
+                        (sectionKey === 'courseDistribution' && cellIndex === 1) ? 3 : 1}
                     />
                   </TableCell>
                 ))}
@@ -478,19 +744,30 @@ export default function SyllabusEdit() {
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
-                {sectionKey == 'learningOutcomes' && (
-                <TableCell>
-                  <IconButton onClick={() => addColumn(sectionKey)}>
-                    <AddIcon />
-                  </IconButton>
-                </TableCell>
+                {sectionKey === 'learningOutcomes' && (
+                  <TableCell>
+                    <IconButton onClick={() => addColumn(sectionKey)}>
+                      <AddIcon />
+                    </IconButton>
+                  </TableCell>
                 )}
               </TableRow>
             ))}
+
+            {/* ---- Total row (non-editable) ---- */}
+            {sectionKey === 'courseDistribution' && (
+              <TableRow>
+                {totalRow.map((cell, i) => (
+                  <TableCell key={i} sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>
+                    {cell}
+                  </TableCell>
+                ))}
+                <TableCell /> {/* for delete button column */}
+              </TableRow>
+            )}
           </TableBody>
         </Table>
-
-  
+                  
         <Box sx={{ mt: 2 }}>
           <Button onClick={() => addRow(sectionKey)}>Add Row</Button>
           <Button onClick={() => deleteColumn(sectionKey)} sx={{ ml: 2 }}>
@@ -500,11 +777,13 @@ export default function SyllabusEdit() {
       </div>
     )
   }
-  
-//  change here check if the table is course schedule then generaet a unique table for it
+
+  // renderSectionContent v2
   const renderSectionContent = (section, sectionKey) => {
     if (sectionKey === 'courseSchedule') {
       return renderStructuredCourseSchedule(sectionKey)
+    } else if (sectionKey === 'courseDistribution' && section.table) {
+      return renderTableSection(section, sectionKey)
     } else if (section.table) {
       return renderTableSection(section, sectionKey)
     } else {
@@ -517,8 +796,64 @@ export default function SyllabusEdit() {
         />
       )
     }
-    
   }
+  const renderCourseDistributionWithTotal = (section, sectionKey) => {
+    const { headers, rows } = section.table || { headers: [], rows: [] }
+  
+    const getColumnSum = (colIndex) => {
+      return rows.reduce((acc, row) => {
+        const val = parseFloat(row[colIndex])
+        return acc + (isNaN(val) ? 0 : val)
+      }, 0)
+    }
+  
+    const hourIndex = headers.findIndex(h => h.toLowerCase().includes('hour'))
+    const creditIndex = headers.findIndex(h => h.toLowerCase().includes('credit'))
+  
+    const totalHours = hourIndex !== -1 ? getColumnSum(hourIndex) : 0
+    const totalCredits = creditIndex !== -1 ? getColumnSum(creditIndex) : 0
+  
+    const totalRow = headers.map((_, idx) => {
+      // Update total hours globally when rendering 'courseDistribution'
+      if (sectionKey === 'courseDistribution' && hourIndex !== -1) {
+        const totalHours = getColumnSum(hourIndex)
+        setCourseDistributionTotalHours(totalHours)
+      }
+      if (idx === 0) return 'Total'
+      if (idx === hourIndex) return `${totalHours}h`
+      if (idx === creditIndex) return `${totalCredits} credit`
+      return ''
+    })
+  
+    return (
+      <Table>
+        <TableHead>
+          <TableRow>
+            {headers.map((header, i) => (
+              <TableCell key={i}>{header}</TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((row, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {row.map((cell, cellIndex) => (
+                <TableCell key={cellIndex}>{cell}</TableCell>
+              ))}
+            </TableRow>
+          ))}
+          <TableRow>
+            {totalRow.map((cell, i) => (
+              <TableCell key={i} sx={{ fontWeight: 'bold' }}>
+                {cell}
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableBody>
+      </Table>
+    )
+  }
+  
 
   const handleRenderPDF = async () => {
     try {
@@ -538,8 +873,28 @@ export default function SyllabusEdit() {
       })
     }
   }
-
+  // handleSave v1
+  // const handleSave = async () => {
+  //   try {
+  //     await axios.put(`/syllabus/save/${id}`, {
+  //       content: JSON.stringify(content)
+  //     })
+  //     enqueueSnackbar('Syllabus saved successfully', { variant: 'success' })
+  //   } catch (error) {
+  //     console.error('Error saving syllabus:', error)
+  //     enqueueSnackbar('Failed to save syllabus', { variant: 'error' })
+  //   }
+  // }
   const handleSave = async () => {
+    // Example: check if total hours from schedule matches distribution total hours
+    if (courseScheduleTotalHours !== courseDistributionTotalHours) {
+      enqueueSnackbar(
+        `Warning: Total schedule hours (${courseScheduleTotalHours}h) do not match course distribution hours (${courseDistributionTotalHours}h). Please fix before saving.`,
+        { variant: 'error' }
+      )
+      return // stop save if validation fails
+    }
+  
     try {
       await axios.put(`/syllabus/save/${id}`, {
         content: JSON.stringify(content)
@@ -550,6 +905,8 @@ export default function SyllabusEdit() {
       enqueueSnackbar('Failed to save syllabus', { variant: 'error' })
     }
   }
+  
+
   console.log("ALL SECTIONS KEYS:", Object.keys(content?.body?.content || {}))
 
   // add this to add a copy week 
@@ -588,19 +945,8 @@ export default function SyllabusEdit() {
         cb(copy)
         return copy
       })
-    //  v1   
-    // const addWeek = () =>
-    //   patch((c) =>
-    //     c.body.content[sectionKey].weeks.push({
-    //       week: c.body.content[sectionKey].weeks.length + 1,
-    //       module: '',
-    //       learningOutcomes: [],
-    //       deliveryMethods: [],
-    //       assignments: '',
-    //       assessment: ''
-    //     })
-    //   )
-      const addWeek = () =>
+   
+    const addWeek = () =>
       patch((c) => {
         const newWeek = {
           week: c.body.content[sectionKey].weeks.length + 1,
@@ -627,8 +973,16 @@ export default function SyllabusEdit() {
         }
     
         c.body.content[sectionKey].weeks.push(newWeek)
-      })
-    
+    })
+    const deleteWeek = (weekIndex) =>
+    patch((c) => {
+      c.body.content[sectionKey].weeks.splice(weekIndex, 1);
+      // Optional: Renumber weeks after deletion
+      c.body.content[sectionKey].weeks.forEach((w, i) => {
+        w.week = i + 1;
+      });
+    });
+
     const addDay = (w) =>
       patch((c) =>
         c.body.content[sectionKey].weeks[w].deliveryMethods.push({
@@ -703,20 +1057,6 @@ export default function SyllabusEdit() {
                   onChange={(e) => setWeekField(w, 'module', e.target.value)}
                 />
               </Grid>
-              {/* Learning Outcome  v1 */} 
-              {/* <Grid item xs={12}>
-                <TextField
-                  label="Learning Outcomes"
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  value={week.learningOutcomes}
-                  onChange={(e) =>
-                    setWeekField(w, 'learningOutcomes', e.target.value)
-                  }
-                />
-              
-              </Grid> */}
 
 
               {/* Learning Outcome  v2 */} 
@@ -868,6 +1208,18 @@ export default function SyllabusEdit() {
                 >
                   ⧉ Duplicate This Session
                 </Button>
+                <Button
+                  size="small"
+                  color="error"
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete this session?')) {
+                      deleteWeek(w); // <-- w must be in scope here
+                    }
+                  }}
+                  sx={{ mt: 1, ml: 1 }}
+                >
+                  X Delete This Session
+                </Button>
             </Grid>
           </Paper>
         ))}
@@ -876,13 +1228,12 @@ export default function SyllabusEdit() {
           + Add Session
           
         </Button>
+        
       
       </Box>
     )
   }
 
-  
-  
   return (
     <Page title="Edit Syllabus">
       <Container maxWidth={false} disableGutters>
@@ -1021,6 +1372,7 @@ export default function SyllabusEdit() {
               </Button>
             </Box>
           </Grid>
+          
         </Grid>
         <Dialog open={openDialog} onClose={handleDialogClose}>
           <DialogTitle>
