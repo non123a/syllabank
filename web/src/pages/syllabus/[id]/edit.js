@@ -187,7 +187,7 @@ export default function SyllabusEdit() {
           parsedContent.body.content.courseDistribution = {
             title: 'Course Distribution',
             description: '',
-            table: { headers: ['Topic', 'Hours'], rows: [['', '']] }
+            table: { headers: ['Domain','Delivery Method','Topic', 'Hours'], rows: [['', '','','']] }
           };
         }
         // inside fetchSyllabus() AFTER you decode JSON
@@ -222,7 +222,8 @@ export default function SyllabusEdit() {
               {
                 week: 1,
                 module: '',
-                learningOutcomes: '',
+                // learningOutcomes: '',
+                learningOutcomes: [{ outcome: '', clo: '' }],
                 deliveryMethods: [
                   {
                     day: '',
@@ -644,7 +645,25 @@ export default function SyllabusEdit() {
             field
           ] = val)
       )
-
+    // Made change for learning out come part to have 2 col
+    const addLearningOutcome = (w) =>
+      patch((c) =>
+        c.body.content[sectionKey].weeks[w].learningOutcomes.push({
+          outcome: '',
+          clo: ''
+        })
+      )
+    
+    const updateLearningOutcome = (w, i, field, value) =>
+      patch((c) => {
+        c.body.content[sectionKey].weeks[w].learningOutcomes[i][field] = value
+      })
+    
+    const removeLearningOutcome = (w, i) =>
+      patch((c) =>
+        c.body.content[sectionKey].weeks[w].learningOutcomes.splice(i, 1)
+      )
+    
     /* ---------- render ---------- */
     return (
       <Box sx={{ mt: 2 }}>
@@ -667,8 +686,8 @@ export default function SyllabusEdit() {
                   onChange={(e) => setWeekField(w, 'module', e.target.value)}
                 />
               </Grid>
-              {/* Learning Outcome */}
-              <Grid item xs={12}>
+              {/* Learning Outcome  v1 */} 
+              {/* <Grid item xs={12}>
                 <TextField
                   label="Learning Outcomes"
                   fullWidth
@@ -679,6 +698,58 @@ export default function SyllabusEdit() {
                     setWeekField(w, 'learningOutcomes', e.target.value)
                   }
                 />
+              
+              </Grid> */}
+
+
+              {/* Learning Outcome  v2 */} 
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Learning Outcomes
+                </Typography>
+
+                {week.learningOutcomes?.map((lo, i) => (
+                  <Grid container spacing={2} key={i} sx={{ mb: 1 }}>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Outcome"
+                        fullWidth
+                        value={lo.outcome}
+                        onChange={(e) =>
+                          updateLearningOutcome(w, i, 'outcome', e.target.value)
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={5}>
+                      <TextField
+                        label="CLO"
+                        fullWidth
+                        value={lo.clo}
+                        onChange={(e) =>
+                          updateLearningOutcome(w, i, 'clo', e.target.value)
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={1}>
+                      {i > 0 && (
+                        <Button
+                          color="error"
+                          onClick={() => removeLearningOutcome(w, i)}
+                        >
+                          ✕
+                        </Button>
+                      )}
+                    </Grid>
+                  </Grid>
+                ))}
+
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => addLearningOutcome(w)}
+                >
+                  + Add Learning Outcome
+                </Button>
               </Grid>
 
               {/* Delivery-Method block */}
@@ -921,6 +992,7 @@ export default function SyllabusEdit() {
                       {section.title}
                     </Typography>
                     {renderSectionContent(section, key)}
+                    {key !== 'courseSchedule' && (
                     <Box sx={{ mt: 1 }}>
                       <IconButton onClick={() => editSection(key)}>
                         <EditIcon />
@@ -929,6 +1001,7 @@ export default function SyllabusEdit() {
                         <DeleteIcon />
                       </IconButton>
                     </Box>
+                    )}
                   </Box>
                 ))}
               <Button

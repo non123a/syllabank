@@ -528,10 +528,112 @@ class SyllabusRenderer
         }
     }
     
+    // private function renderCourseScheduleNested(array $courseSchedule): string
+    // {
+    //     if (empty($courseSchedule)) return '';
+
+    //     $html = '<table width="100%" cellpadding="6" cellspacing="0" border="1" style="border-collapse: collapse; font-size: 14px; text-align: center;" >';
+    //     $html .= '
+    //         <thead>
+    //             <tr style="background: #f2f2f2;">
+    //                 <th style="width: 8%;">Sessions</th>
+    //                 <th style="width: 15%;">Module</th>
+    //                 <th style="width: 27%;">Learning Outcomes</th>
+    //                 <th style="width: 30%;">Delivery Method</th>
+    //                 <th style="width: 10%; font-size: 14px;">Assignments / Reading</th>
+    //                 <th style="width: 10%; font-size: 14px;">Assessment</th>
+    //             </tr>
+    //         </thead>
+    //         <tbody>';
+
+    //     foreach ($courseSchedule as $wIdx => $wData) {
+    //         $weekLabel = 'Session ' . ($wIdx + 1);
+    //         $module = '<strong>' . htmlspecialchars($wData['module'] ?? '') . '</strong>';
+
+    //         // Learning outcomes
+    //         $outcomeHtml = '';
+    //         if (!empty(trim($wData['learningOutcomes'] ?? ''))) {
+    //             $lines = explode("\n", trim($wData['learningOutcomes']));
+    //             $outcomeHtml .= '<div style="text-align: left;">';
+    //             foreach ($lines as $line) {
+    //                 $outcomeHtml .= htmlspecialchars(trim($line)) . '<br>';
+    //             }
+    //             $outcomeHtml .= '</div>';
+    //         }
+
+    //                     // Delivery method rows
+    //         $deliveryRows = '';
+    //         foreach ($wData['deliveryMethods'] as $delivery) {
+    //             $methods = $delivery['methods'] ?? [];
+    //             $rowspan = count($methods);
+    //             $firstRow = true;
+    //             $i = 0;
+
+    //             foreach ($methods as $m) {
+    //                 $borderRowStyle = ($i === 1) ? 'style="border-top: 1px solid #ccc;"' : '';
+                
+    //                 $deliveryRows .= "<tr $borderRowStyle>";
+                
+    //                 if ($firstRow) {
+    //                     $deliveryRows .= '<td rowspan="' . $rowspan . '" style="
+    //                         font-style: italic;
+    //                         vertical-align: middle;
+    //                         border: none;
+    //                         width: 60px;
+    //                         max-width: 60px;
+    //                     ">' . htmlspecialchars($delivery['day']) . '</td>';
+    //                     $firstRow = false;
+    //                 }
+                
+    //                 $deliveryRows .= '<td style="width: 190px; max-width: 190px; border: none;">' . htmlspecialchars($m['method']) . '</td>';
+    //                 $deliveryRows .= '<td style="width: 30px; max-width: 30px; border: none;">' . htmlspecialchars($m['duration']) . '</td>';
+    //                 $deliveryRows .= '</tr>';
+                
+    //                 $i++;
+    //             }
+                
+                
+    //         }
+
+    //         // Delivery table
+    //         $deliveryHtml = '
+    //         <table width="100%" style="
+    //             border-collapse: collapse;
+    //             font-size: 12px;
+    //             text-align: center;
+    //             border: none;
+    //             margin: 0;
+    //             table-layout: fixed;
+                
+    //         ">
+    //             <tbody>' . $deliveryRows . '</tbody>
+    //         </table>';
+
+
+
+    //         // Assignment & Assessment
+    //         $assign = trim($wData['assignments'] ?? '') ?: '-';
+    //         $assess = trim($wData['assessment'] ?? '') ?: '-';
+
+    //         $html .= '<tr>';
+    //         $html .= '<td>' . $weekLabel . '</td>';
+    //         $html .= '<td>' . $module . '</td>';
+    //         $html .= '<td>' . $outcomeHtml . '</td>';
+    //         $html .= '<td style="padding: 0; border: none;">' . $deliveryHtml . '</td>';
+    //         $html .= '<td style="font-size: 12px;">' . htmlspecialchars($assign) . '</td>';
+    //         $html .= '<td style="font-size: 12px;">' . htmlspecialchars($assess) . '</td>';
+    //         $html .= '</tr>';
+    //     }
+
+    //     $html .= '</tbody></table>';
+    //     return $html;
+    // }
+
+    // New renderer for courseSchedule v2
     private function renderCourseScheduleNested(array $courseSchedule): string
     {
         if (empty($courseSchedule)) return '';
-
+    
         $html = '<table width="100%" cellpadding="6" cellspacing="0" border="1" style="border-collapse: collapse; font-size: 14px; text-align: center;" >';
         $html .= '
             <thead>
@@ -545,35 +647,50 @@ class SyllabusRenderer
                 </tr>
             </thead>
             <tbody>';
-
+    
         foreach ($courseSchedule as $wIdx => $wData) {
             $weekLabel = 'Session ' . ($wIdx + 1);
             $module = '<strong>' . htmlspecialchars($wData['module'] ?? '') . '</strong>';
-
-            // Learning outcomes
+    
+            // Learning outcomes (updated to support array format)
             $outcomeHtml = '';
-            if (!empty(trim($wData['learningOutcomes'] ?? ''))) {
-                $lines = explode("\n", trim($wData['learningOutcomes']));
-                $outcomeHtml .= '<div style="text-align: left;">';
-                foreach ($lines as $line) {
-                    $outcomeHtml .= htmlspecialchars(trim($line)) . '<br>';
+            if (!empty($wData['learningOutcomes']) && is_array($wData['learningOutcomes'])) {
+                $outcomeHtml .= '<table width="100%" style="font-size: 12px; text-align: left; border-collapse: collapse;">';
+                
+                foreach ($wData['learningOutcomes'] as $lo) {
+                    $out = htmlspecialchars($lo['outcome'] ?? '');
+                    $clo = htmlspecialchars($lo['clo'] ?? '');
+                    $outcomeHtml .= '<tr>';
+                    $outcomeHtml .= '<td style="width: 70%;">' . $out . '</td>';
+                    $outcomeHtml .= '<td style="width: 30%; font-style: italic; color: #555;">' . $clo . '</td>';
+                    $outcomeHtml .= '</tr>';
                 }
-                $outcomeHtml .= '</div>';
+                $outcomeHtml .= '</table>';
+            } else {
+                // fallback (in case the data is still a string)
+                $text = trim($wData['learningOutcomes'] ?? '');
+                if ($text !== '') {
+                    $lines = explode("\n", $text);
+                    $outcomeHtml .= '<div style="text-align: left;">';
+                    foreach ($lines as $line) {
+                        $outcomeHtml .= htmlspecialchars(trim($line)) . '<br>';
+                    }
+                    $outcomeHtml .= '</div>';
+                }
             }
-
-                        // Delivery method rows
+    
+            // Delivery method rows (same as before)
             $deliveryRows = '';
             foreach ($wData['deliveryMethods'] as $delivery) {
                 $methods = $delivery['methods'] ?? [];
                 $rowspan = count($methods);
                 $firstRow = true;
                 $i = 0;
-
+    
                 foreach ($methods as $m) {
                     $borderRowStyle = ($i === 1) ? 'style="border-top: 1px solid #ccc;"' : '';
-                
                     $deliveryRows .= "<tr $borderRowStyle>";
-                
+    
                     if ($firstRow) {
                         $deliveryRows .= '<td rowspan="' . $rowspan . '" style="
                             font-style: italic;
@@ -584,18 +701,16 @@ class SyllabusRenderer
                         ">' . htmlspecialchars($delivery['day']) . '</td>';
                         $firstRow = false;
                     }
-                
+    
                     $deliveryRows .= '<td style="width: 190px; max-width: 190px; border: none;">' . htmlspecialchars($m['method']) . '</td>';
                     $deliveryRows .= '<td style="width: 30px; max-width: 30px; border: none;">' . htmlspecialchars($m['duration']) . '</td>';
                     $deliveryRows .= '</tr>';
-                
+    
                     $i++;
                 }
-                
-                
             }
-
-            // Delivery table
+    
+            // Delivery method table
             $deliveryHtml = '
             <table width="100%" style="
                 border-collapse: collapse;
@@ -604,17 +719,14 @@ class SyllabusRenderer
                 border: none;
                 margin: 0;
                 table-layout: fixed;
-                
             ">
                 <tbody>' . $deliveryRows . '</tbody>
             </table>';
-
-
-
+    
             // Assignment & Assessment
             $assign = trim($wData['assignments'] ?? '') ?: '-';
             $assess = trim($wData['assessment'] ?? '') ?: '-';
-
+    
             $html .= '<tr>';
             $html .= '<td>' . $weekLabel . '</td>';
             $html .= '<td>' . $module . '</td>';
@@ -624,10 +736,11 @@ class SyllabusRenderer
             $html .= '<td style="font-size: 12px;">' . htmlspecialchars($assess) . '</td>';
             $html .= '</tr>';
         }
-
+    
         $html .= '</tbody></table>';
         return $html;
     }
+    
     // In Edit.js, replace renderStructuredCourseSchedule with this version:
 
 
