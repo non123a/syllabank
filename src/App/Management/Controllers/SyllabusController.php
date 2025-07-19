@@ -111,7 +111,7 @@ class SyllabusController extends Controller
         $pdf = app('dompdf.wrapper')->loadView('welcome', $data);
 
         // Set paper size and orientation
-        $pdf->setPaper('A4', 'portrait');
+        $pdf->setPaper('A4', 'landscape');
 
         // Enable CSS float and position
         $pdf->getOptions()->set('isHtml5ParserEnabled', true);
@@ -446,7 +446,7 @@ class SyllabusController extends Controller
 
         // Generate PDF from HTML
         $pdf = app('dompdf.wrapper')->loadHtml($htmlContent);
-        $pdf->setPaper('A4', 'portrait');
+        $pdf->setPaper('A4', 'landscape');
         $pdf->getOptions()->set('isHtml5ParserEnabled', true);
         $pdf->getOptions()->set('isPhpEnabled', true);
 
@@ -605,6 +605,7 @@ class SyllabusController extends Controller
             'syllabus_name' => 'required|string',
             'pdf_file' => 'required|file|mimes:pdf|max:10240', // 10MB max
         ]);
+        $creditValue = $request->input('credits') ?? $request->input('credit');
 
         $data = new UploadSyllabusFileData(
             $request->file('pdf_file'),

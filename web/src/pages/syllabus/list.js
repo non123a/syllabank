@@ -136,13 +136,48 @@ export default function SyllabusList() {
     push(PATH_DASHBOARD.syllabus.view(id))
   }
 
+  // const handleEditRow = (id) => {
+  //   const syllabus = syllabi.find((s) => s.id === id)
+  //   console.log('SYLLABUS DATA:', syllabus) // 👈 this line
+  //   if (syllabus && syllabus.is_file_upload) {
+  //     setSelectedSyllabusId(id)
+  //     setOpenFileUploadDialog(true)
+  //   } else {
+  //     push(`/syllabus/${id}/edit`)
+  //     const { course, academic_year_start, academic_year_end, semester_number, sections } = syllabus
+  //     const yearRange = `${new Date(academic_year_start).getFullYear()}/${new Date(academic_year_end).getFullYear()}`
+  //     push({
+  //       pathname: `/syllabus/${id}/edit`,
+  //       query: {
+  //         courseCode: `${course.subject}${course.code}`,
+  //         academicYear: yearRange,
+  //         semester: `Semester ${semester_number}`,
+  //         sections
+  //       }
+  //     })
+  //   }
+  // }
   const handleEditRow = (id) => {
     const syllabus = syllabi.find((s) => s.id === id)
+    console.log('SYLLABUS DATA:', syllabus)
     if (syllabus && syllabus.is_file_upload) {
       setSelectedSyllabusId(id)
       setOpenFileUploadDialog(true)
     } else {
-      push(`/syllabus/${id}/edit`)
+      const academicYear = `${syllabus.academic_year_start.slice(0, 4)}/${syllabus.academic_year_end.slice(0, 4)}`
+      const syllabusName = syllabus.syllabus_name
+      const semester = syllabus.semester_number
+      const sections = syllabus.sections
+  
+      push({
+        pathname: `/syllabus/${id}/edit`,
+        query: {
+          syllabusName,
+          academicYear,
+          semester,
+          sections
+        }
+      })
     }
   }
 

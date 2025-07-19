@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/router'
+import { useFormContext } from 'react-hook-form'
+
+
 import {
   Container,
   Box,
@@ -51,18 +54,133 @@ export default function SyllabusEdit() {
   const [currentSectionKey, setCurrentSectionKey] = useState(null)
   const { enqueueSnackbar } = useSnackbar()
 
+  // useEffect(() => {
+  //   if (id) {
+  //     fetchSyllabus()
+  //   }
+  // }, [id])
   useEffect(() => {
-    if (id) {
-      fetchSyllabus()
-    }
-  }, [id])
 
+    if (id && router.isReady) {
+
+      fetchSyllabus()
+
+    }
+
+  }, [id, router.isReady])
   const fetchSyllabus = async () => {
     try {
       const response = await axios.get(`/syllabus/${id}`)
       if (response.data) {
         const parsedContent = JSON.parse(response.data.content)
         console.log("🔎 FETCHED SYLLABUS:", parsedContent)
+        // console.log(content.body.content.courseSchedule)
+
+        // const query = router.query
+
+        const query = router.query || {}
+
+        if (!parsedContent.body.header.courseInfo) {
+
+          parsedContent.body.header.courseInfo = {}
+
+        }
+
+        const courseInfo = parsedContent.body.header.courseInfo
+
+        
+
+        // ✅ Overwrite only if field is default/empty
+
+        if (query.syllabusName && (!courseInfo.courseCode || courseInfo.courseCode === '[Course Code]')) {
+
+          courseInfo.courseCode = query.syllabusName
+
+        }
+
+        // Make sure courseInfo exists
+
+
+        if (query.academicYear && (!courseInfo.academicYear || courseInfo.academicYear.includes('20XX'))) {
+
+          courseInfo.academicYear = query.academicYear
+
+        }
+
+        if (query.semester && (!courseInfo.semester || courseInfo.semester.includes('Semester X'))) {
+
+          courseInfo.semester = `Semester ${query.semester}`
+
+        }
+
+
+
+        if (query.sections && (!courseInfo.credits || courseInfo.credits.includes('Credits X'))) {
+
+          try {
+
+            const parsedSections = JSON.parse(query.sections)
+
+            if (Array.isArray(parsedSections)) {
+
+              courseInfo.credits = `Credits: ${parsedSections[0]}`
+
+            }
+
+          } catch (err) {
+
+            console.warn('Could not parse sections', err)
+
+          }
+
+        }
+
+    
+
+        if (!courseInfo.credits || courseInfo.credits.includes('Credits X')) {
+
+          try {
+
+            const parsedSections = JSON.parse(response.data.sections)
+
+            if (Array.isArray(parsedSections)) {
+
+              courseInfo.credits = `Credits: ${parsedSections[0]}`
+
+            }
+
+          } catch (err) {
+
+            console.warn('Could not parse sections for credits fallback', err)
+
+          }
+
+        }
+
+
+
+        const dbCredit = response.data.credit
+
+
+
+        // Set into courseInfo if empty
+
+        if (!parsedContent.body.header.courseInfo.credits || parsedContent.body.header.courseInfo.credits === 'Credits: X') {
+
+          parsedContent.body.header.courseInfo.credits = `Credits: ${dbCredit}`
+
+        }
+
+        parsedContent.body.header.courseInfo = courseInfo
+
+
+
+
+
+        // ✅ Finally update state
+
+        // setContent(parsedContent)
+
 
         // add course distribution
         if (!parsedContent.body.content.courseDistribution) {
@@ -493,6 +611,7 @@ export default function SyllabusEdit() {
           week: c.body.content[sectionKey].weeks.length + 1,
           module: '',
           learningOutcomes: '',
+          
           deliveryMethods: [],
           assignments: '',
           assessment: ''
@@ -534,7 +653,7 @@ export default function SyllabusEdit() {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={3}>
                 <TextField
-                  label="Week"
+                  label="Sessions"
                   fullWidth
                   value={week.week}
                   onChange={(e) => setWeekField(w, 'week', e.target.value)}
@@ -548,7 +667,7 @@ export default function SyllabusEdit() {
                   onChange={(e) => setWeekField(w, 'module', e.target.value)}
                 />
               </Grid>
-
+              {/* Learning Outcome */}
               <Grid item xs={12}>
                 <TextField
                   label="Learning Outcomes"
@@ -629,14 +748,14 @@ export default function SyllabusEdit() {
                   </Box>
                 ))}
 
-                <Button
+                {/* <Button
                   size="small"
                   onClick={() => addDay(w)}
                   sx={{ mt: 1 }}
                   variant="outlined"
                 >
                   + Add Day
-                </Button>
+                </Button> */}
                 {/* this button add to allow user to copy the previous week to paste in the next week */}
                 {/* <Button
                   size="small"
@@ -675,14 +794,14 @@ export default function SyllabusEdit() {
                   onClick={() => copyWeek(w, setContent)}
                   sx={{ mt: 1 }}
                 >
-                  ⧉ Duplicate This Week
+                  ⧉ Duplicate This Session
                 </Button>
             </Grid>
           </Paper>
         ))}
 
         <Button onClick={addWeek} variant="contained">
-          + Add Week
+          + Add Session
           
         </Button>
         {/* add copy buttom */}
