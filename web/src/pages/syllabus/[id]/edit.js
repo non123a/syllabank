@@ -645,14 +645,28 @@ export default function SyllabusEdit() {
             field
           ] = val)
       )
-    // Made change for learning out come part to have 2 col
+    // Made change for learning out come part to have 2 col -v1
+    // const addLearningOutcome = (w) =>
+    //   patch((c) =>
+    //     c.body.content[sectionKey].weeks[w].learningOutcomes.push({
+    //       outcome: '',
+    //       clo: ''
+    //     })
+    //   )
+    // Made change for learning out come part to have 2 col -v2
     const addLearningOutcome = (w) =>
-      patch((c) =>
-        c.body.content[sectionKey].weeks[w].learningOutcomes.push({
+      patch((c) => {
+        const targetWeek = c.body.content[sectionKey].weeks[w];
+    
+        if (!Array.isArray(targetWeek.learningOutcomes)) {
+          targetWeek.learningOutcomes = [];
+        }
+    
+        targetWeek.learningOutcomes.push({
           outcome: '',
-          clo: ''
-        })
-      )
+          clo: '',
+        });
+      });
     
     const updateLearningOutcome = (w, i, field, value) =>
       patch((c) => {
@@ -708,11 +722,12 @@ export default function SyllabusEdit() {
                   Learning Outcomes
                 </Typography>
 
-                {week.learningOutcomes?.map((lo, i) => (
+                {/* {week.learningOutcomes?.map((lo, i) => ( */}
+                {Array.isArray(week.learningOutcomes) ? week.learningOutcomes.map((lo, i) => (
                   <Grid container spacing={2} key={i} sx={{ mb: 1 }}>
                     <Grid item xs={6}>
                       <TextField
-                        label="Outcome"
+                        label=" Learning Outcome"
                         fullWidth
                         value={lo.outcome}
                         onChange={(e) =>
@@ -741,7 +756,7 @@ export default function SyllabusEdit() {
                       )}
                     </Grid>
                   </Grid>
-                ))}
+                )) : null}
 
                 <Button
                   size="small"
@@ -992,7 +1007,7 @@ export default function SyllabusEdit() {
                       {section.title}
                     </Typography>
                     {renderSectionContent(section, key)}
-                    {key !== 'courseSchedule' && (
+                    {/* {key !== 'courseSchedule' && ( */}
                     <Box sx={{ mt: 1 }}>
                       <IconButton onClick={() => editSection(key)}>
                         <EditIcon />
@@ -1001,7 +1016,7 @@ export default function SyllabusEdit() {
                         <DeleteIcon />
                       </IconButton>
                     </Box>
-                    )}
+                    {/* )} */}
                   </Box>
                 ))}
               <Button

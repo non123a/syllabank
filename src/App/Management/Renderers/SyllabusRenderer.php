@@ -653,18 +653,34 @@ class SyllabusRenderer
             $module = '<strong>' . htmlspecialchars($wData['module'] ?? '') . '</strong>';
     
             // Learning outcomes (updated to support array format)
+            // Learning outcomes (updated with header + numbering)
             $outcomeHtml = '';
             if (!empty($wData['learningOutcomes']) && is_array($wData['learningOutcomes'])) {
-                $outcomeHtml .= '<table width="100%" style="font-size: 12px; text-align: left; border-collapse: collapse;">';
-                
-                foreach ($wData['learningOutcomes'] as $lo) {
-                    $out = htmlspecialchars($lo['outcome'] ?? '');
-                    $clo = htmlspecialchars($lo['clo'] ?? '');
-                    $outcomeHtml .= '<tr>';
-                    $outcomeHtml .= '<td style="width: 70%;">' . $out . '</td>';
-                    $outcomeHtml .= '<td style="width: 30%; font-style: italic; color: #555;">' . $clo . '</td>';
+                $outcomeHtml .= '<div style="font-size: 12px; text-align: left; margin-bottom: 4px;">
+                    Upon the successful completion of this module, students should be able to:
+                </div>';
+
+                $outcomeHtml .= '<table width="100%" style="
+                    font-size: 12px;
+                    text-align: left;
+                    border-collapse: collapse;
+                    border: none;
+                    margin: 0;
+                    padding: 0;
+                ">';
+
+                foreach ($wData['learningOutcomes'] as $idx => $lo) {
+                    $num = $idx + 1;
+                    $out = htmlspecialchars($lo['clo'] ?? ''); // change to 'clo' if renamed
+                    $desc = htmlspecialchars($lo['outcome'] ?? '');
+
+                    $outcomeHtml .= '<tr style="border: none;">';
+                    $outcomeHtml .= '<td style="width: 5%; border: none; vertical-align: top; padding: 2px 4px;">' . $num . '.</td>';
+                    $outcomeHtml .= '<td style="width: 70%; border: none; padding: 2px 4px;">' . $desc . '</td>';
+                    $outcomeHtml .= '<td style="width: 25%; border: none; padding: 2px 4px; font-style: italic; color: #555;">' . $out . '</td>';
                     $outcomeHtml .= '</tr>';
                 }
+
                 $outcomeHtml .= '</table>';
             } else {
                 // fallback (in case the data is still a string)
@@ -680,48 +696,116 @@ class SyllabusRenderer
             }
     
             // Delivery method rows (same as before)
+            // $deliveryRows = '';
+            // foreach ($wData['deliveryMethods'] as $delivery) {
+            //     $methods = $delivery['methods'] ?? [];
+            //     $rowspan = count($methods);
+            //     $firstRow = true;
+            //     $i = 0;
+    
+            //     foreach ($methods as $m) {
+            //         $borderRowStyle = ($i === 1) ? 'style="border-top: 1px solid #ccc;"' : '';
+            //         $deliveryRows .= "<tr $borderRowStyle>";
+    
+            //         if ($firstRow) {
+            //             $deliveryRows .= '<td rowspan="' . $rowspan . '" style="
+            //                 font-style: italic;
+            //                 vertical-align: middle;
+            //                 border: none;
+            //                 width: 60px;
+            //                 max-width: 60px;
+            //             ">' . htmlspecialchars($delivery['day']) . '</td>';
+            //             $firstRow = false;
+            //         }
+    
+            //         $deliveryRows .= '<td style="width: 190px; max-width: 190px; border: none;">' . htmlspecialchars($m['method']) . '</td>';
+            //         $deliveryRows .= '<td style="width: 30px; max-width: 30px; border: none;">' . htmlspecialchars($m['duration']) . '</td>';
+            //         $deliveryRows .= '</tr>';
+    
+            //         $i++;
+            //     }
+            // }
+            // Delivery method rows v2
+            // Delivery method rows (styled like Learning Outcomes)
             $deliveryRows = '';
             foreach ($wData['deliveryMethods'] as $delivery) {
                 $methods = $delivery['methods'] ?? [];
                 $rowspan = count($methods);
                 $firstRow = true;
-                $i = 0;
-    
+
                 foreach ($methods as $m) {
-                    $borderRowStyle = ($i === 1) ? 'style="border-top: 1px solid #ccc;"' : '';
-                    $deliveryRows .= "<tr $borderRowStyle>";
-    
+                    $deliveryRows .= '<tr>';
+
+                    // First column: Day (with rowspan, styled to match outer table)
                     if ($firstRow) {
                         $deliveryRows .= '<td rowspan="' . $rowspan . '" style="
-                            font-style: italic;
+                            padding: 6px;
                             vertical-align: middle;
-                            border: none;
-                            width: 60px;
-                            max-width: 60px;
+                            text-align: center;
+                            font-weight: normal;
+                            border-right: 1px solid #ddd;
+                            border-bottom: 1px solid #ddd;
+                            background-color: #fff;
                         ">' . htmlspecialchars($delivery['day']) . '</td>';
                         $firstRow = false;
                     }
+
     
-                    $deliveryRows .= '<td style="width: 190px; max-width: 190px; border: none;">' . htmlspecialchars($m['method']) . '</td>';
-                    $deliveryRows .= '<td style="width: 30px; max-width: 30px; border: none;">' . htmlspecialchars($m['duration']) . '</td>';
+                    $deliveryRows .= '<td style="
+                    padding: 4px 6px;
+                    margin: 0;
+                    text-align: middle;
+                    vertical-align: top;
+                    word-break: break-word;
+                    border-bottom: 1px solid #ddd;
+                    background-color: #fff;
+                    ">' . nl2br(htmlspecialchars($m['method'])) . '</td>';
+    
+
+                    // Duration column (right-aligned, match styling)
+                    $deliveryRows .= '<td style="
+                        padding: 6px;
+                        text-align: middle;
+                        vertical-align: top;
+                        border-bottom: 1px solid #ddd;
+                        background-color: #fff;
+                    ">' . htmlspecialchars($m['duration']) . '</td>';
+                   
+
                     $deliveryRows .= '</tr>';
-    
-                    $i++;
                 }
             }
-    
-            // Delivery method table
+
             $deliveryHtml = '
             <table width="100%" style="
                 border-collapse: collapse;
                 font-size: 12px;
-                text-align: center;
-                border: none;
-                margin: 0;
+                line-height: 5;
                 table-layout: fixed;
+                margin: 0;
+                padding: 0;
             ">
                 <tbody>' . $deliveryRows . '</tbody>
             </table>';
+
+
+
+
+    
+            // Delivery method table
+            // $deliveryHtml = '
+            // <table width="100%" style="
+            //     border-collapse: collapse;
+            //     font-size: 12px;
+            //     text-align: center;
+            //     border: none;
+            //     margin: 0;
+            //     table-layout: fixed;
+            // ">
+            //     <tbody>' . $deliveryRows . '</tbody>
+            // </table>';
+            
+
     
             // Assignment & Assessment
             $assign = trim($wData['assignments'] ?? '') ?: '-';
@@ -731,7 +815,7 @@ class SyllabusRenderer
             $html .= '<td>' . $weekLabel . '</td>';
             $html .= '<td>' . $module . '</td>';
             $html .= '<td>' . $outcomeHtml . '</td>';
-            $html .= '<td style="padding: 0; border: none;">' . $deliveryHtml . '</td>';
+            $html .= '<td style="padding: 0; ">' . $deliveryHtml . '</td>';
             $html .= '<td style="font-size: 12px;">' . htmlspecialchars($assign) . '</td>';
             $html .= '<td style="font-size: 12px;">' . htmlspecialchars($assess) . '</td>';
             $html .= '</tr>';
