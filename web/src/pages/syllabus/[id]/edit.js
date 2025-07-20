@@ -131,7 +131,7 @@ export default function SyllabusEdit() {
     setCourseScheduleTotalHours(scheduleTotal)
     setCourseDistributionTotalHours(distributionTotal)
   
-    if (scheduleTotal !== distributionTotal) {
+    if (scheduleTotal < distributionTotal) {
       setHoursMismatchWarning(
         `⚠️ Warning: Schedule total hours (${scheduleTotal}h) do not match distribution total hours (${distributionTotal}h).`
       )
@@ -887,7 +887,7 @@ export default function SyllabusEdit() {
   // }
   const handleSave = async () => {
     // Example: check if total hours from schedule matches distribution total hours
-    if (courseScheduleTotalHours !== courseDistributionTotalHours) {
+    if (courseScheduleTotalHours < courseDistributionTotalHours) {
       enqueueSnackbar(
         `Warning: Total schedule hours (${courseScheduleTotalHours}h) do not match course distribution hours (${courseDistributionTotalHours}h). Please fix before saving.`,
         { variant: 'error' }
