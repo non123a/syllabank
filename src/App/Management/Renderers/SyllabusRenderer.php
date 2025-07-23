@@ -322,36 +322,6 @@ class SyllabusRenderer
         }
     }
 
-    // private function renderList($list): string
-    // {
-    //     try {
-    //         if (is_string($list)) {
-    //             $items = explode("]], [[", trim($list, "[]"));
-    //             $html = "<ul>\n";
-    //             foreach ($items as $item) {
-    //                 $html .= "<li>" . trim($item, "[]") . "</li>\n";
-    //             }
-    //             $html .= "</ul>\n";
-    //             return $html;
-    //         }
-
-    //         if (!is_array($list)) {
-    //             $this->logDebug("Invalid list type: " . gettype($list));
-    //             return "";
-    //         }
-
-    //         $html = "<ul>\n";
-    //         foreach ($list as $item) {
-    //             $html .= "<li>" . (is_array($item) ? $item['content'] : $item) . "</li>\n";
-    //         }
-    //         $html .= "</ul>\n";
-    //         return $html;
-    //     } catch (Exception $e) {
-    //         $this->logDebug("Error in renderList method: " . $e->getMessage());
-    //         throw $e;
-    //     }
-    // }
-    // render list v2
     private function renderList($list): string
     {
         try {
@@ -745,39 +715,6 @@ class SyllabusRenderer
     }
     
   
-    /* ------------------------------------------------------------------ */
-    /*  Custom renderer for Course Distribution                           */
-    /* ------------------------------------------------------------------ */
-    // private function renderCourseDistribution($table): string
-    // {
-    //     if (empty($table['rows'])) {
-    //         return '';
-    //     }
-
-    //     $html  = '<table width="100%" style="border-collapse:collapse; font-size:14px;">';
-    //     $html .= '<thead><tr style="background:#f2f2f2;">';
-    //     foreach ($table['headers'] as $i => $head) {
-    //         // fixed widths: 15, 75, 10, 10 %
-    //         $width = [15, 75, 10, 10][$i] . '%';
-    //         $html .= '<th style="width:'.$width.'; border:1px solid #ccc; text-align:center;">'
-    //             . htmlspecialchars($head) . '</th>';
-    //     }
-    //     $html .= '</tr></thead><tbody>';
-
-    //     foreach ($table['rows'] as $row) {
-    //         $html .= '<tr>';
-    //         foreach ($row as $idx => $cell) {
-    //             $align  = $idx === 1 ? 'left' : 'center';             // Delivery Method → left align
-    //             $cell   = nl2br(htmlspecialchars($cell));             // keep textarea line-breaks
-    //             $html  .= '<td style="border:1px solid #ccc; text-align:'.$align.';">'
-    //                     . $cell . '</td>';
-    //         }
-    //         $html .= '</tr>';
-    //     }
-
-    //     $html .= '</tbody></table>';
-    //     return $html;
-    // }
     private function renderCourseDistribution($table): string
 {
     if (empty($table['rows'])) {

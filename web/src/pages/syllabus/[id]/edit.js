@@ -567,106 +567,7 @@ export default function SyllabusEdit() {
       return newContent
     })
   }, [])
-//  renderTableSection v1
-  // const renderTableSection = (section, sectionKey) => {
-  //   return (
-  //     <div className="space-y-4">
-  //       <Table>
-  //       {sectionKey !== 'learningOutcomes' && (
-  //           <TableHead>
-  //             <TableRow>
-  //               {section.table.headers.map((header, index) => (
-  //                 <TableCell key={index}>
-  //                   <TextField
-  //                     value={header}
-  //                     onChange={(e) =>
-  //                       handleTableHeaderChange(sectionKey, index, e.target.value)
-  //                     }
-  //                     fullWidth
-                      
-  //                   />
-  //                 </TableCell>
-  //               ))}
-  //               <TableCell>
-  //                 <IconButton onClick={() => addColumn(sectionKey)}>
-  //                   <AddIcon />
-  //                 </IconButton>
-  //               </TableCell>
-  //             </TableRow>
-  //           </TableHead>
-  //         )}
 
-  //         <TableBody>
-  //           {section.table.rows.map((row, rowIndex) => (
-  //             <TableRow key={rowIndex}>
-  //               {row.map((cell, cellIndex) => (
-  //                 <TableCell key={cellIndex}>
-  //                   <TextField
-  //                     value={cell}
-  //                     onChange={(e) =>
-  //                       handleTableCellChange(
-  //                         sectionKey,
-  //                         rowIndex,
-  //                         cellIndex,
-  //                         e.target.value
-  //                       )
-  //                     }
-  //                     fullWidth
-  //                     multiline={(sectionKey === 'coursePolicies' && cellIndex === 1) ||
-  //                     (sectionKey === 'courseDistribution' && cellIndex === 1)}
-                  
-  //                     minRows={(sectionKey === 'coursePolicies' && cellIndex === 1) ? 2 :
-  //                     (sectionKey === 'courseDistribution' && cellIndex === 1) ? 3 : 1}
-                    
-  //                   />
-  //                 </TableCell>
-  //               ))}
-  //               <TableCell>
-  //                 <IconButton onClick={() => deleteRow(sectionKey, rowIndex)}>
-  //                   <DeleteIcon />
-  //                 </IconButton>
-  //               </TableCell>
-  //               {sectionKey == 'learningOutcomes' && (
-  //               <TableCell>
-  //                 <IconButton onClick={() => addColumn(sectionKey)}>
-  //                   <AddIcon />
-  //                 </IconButton>
-  //               </TableCell>
-  //               )}
-  //             </TableRow>
-  //           ))}
-  //         </TableBody>
-  //       </Table>
-
-  
-  //       <Box sx={{ mt: 2 }}>
-  //         <Button onClick={() => addRow(sectionKey)}>Add Row</Button>
-  //         <Button onClick={() => deleteColumn(sectionKey)} sx={{ ml: 2 }}>
-  //           Delete Last Column
-  //         </Button>
-  //       </Box>
-  //     </div>
-  //   )
-  // }
-  
-// //  change here check if the table is course schedule then generaet a unique table for it  v1
-//   const renderSectionContent = (section, sectionKey) => {
-//     if (sectionKey === 'courseSchedule') {
-//       return renderStructuredCourseSchedule(sectionKey)
-//     } else if (section.table) {
-//       return renderTableSection(section, sectionKey)
-//     } else {
-//       return (
-//         <ReactQuill
-//           value={section.description}
-//           onChange={(value) =>
-//             handleContentChange(`body.content.${sectionKey}.description`, value)
-//           }
-//         />
-//       )
-//     }
-    
-//   }
 
   const renderTableSection = (section, sectionKey) => {
     const headers = section.table.headers
@@ -873,18 +774,7 @@ export default function SyllabusEdit() {
       })
     }
   }
-  // handleSave v1
-  // const handleSave = async () => {
-  //   try {
-  //     await axios.put(`/syllabus/save/${id}`, {
-  //       content: JSON.stringify(content)
-  //     })
-  //     enqueueSnackbar('Syllabus saved successfully', { variant: 'success' })
-  //   } catch (error) {
-  //     console.error('Error saving syllabus:', error)
-  //     enqueueSnackbar('Failed to save syllabus', { variant: 'error' })
-  //   }
-  // }
+
   const handleSave = async () => {
     // Example: check if total hours from schedule matches distribution total hours
     if (courseScheduleTotalHours < courseDistributionTotalHours) {

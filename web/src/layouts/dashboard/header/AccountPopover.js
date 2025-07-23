@@ -178,7 +178,7 @@ export default function AccountPopover() {
             }
           }}
         >
-          Logout
+          Logout 1
         </MenuItem>
       </MenuPopover>
     </>
